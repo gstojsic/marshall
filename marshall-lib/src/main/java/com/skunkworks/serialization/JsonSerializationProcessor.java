@@ -15,19 +15,14 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
-import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -36,14 +31,12 @@ import java.util.Set;
  */
 public class JsonSerializationProcessor extends AbstractProcessor {
     private Messager messager;
-    private Elements elementUtils;
     private Filer filer;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         messager = processingEnv.getMessager();
-        elementUtils = processingEnv.getElementUtils();
         filer = processingEnv.getFiler();
     }
 
@@ -59,7 +52,7 @@ public class JsonSerializationProcessor extends AbstractProcessor {
             }
 
             try {
-                generateCode(annotatedElement, elementUtils, filer);
+                generateCode(annotatedElement, filer);
             } catch (Exception e) {
                 error(null, e.getMessage());
             }
@@ -79,10 +72,10 @@ public class JsonSerializationProcessor extends AbstractProcessor {
         return SourceVersion.latestSupported();
     }
 
-    private void generateCode(Element annotatedElement, Elements elementUtils, Filer filer) throws Exception {
+    private void generateCode(Element annotatedElement, Filer filer) throws Exception {
         List<FieldData> fields = new ArrayList<>();
 
-        JavaFileObject jfo = processingEnv.getFiler().createSourceFile(
+        JavaFileObject jfo = filer.createSourceFile(
                 annotatedElement.getSimpleName() + "JsonSerializer");
 
         messager.printMessage(
@@ -117,7 +110,7 @@ public class JsonSerializationProcessor extends AbstractProcessor {
 
         Template vt = ve.getTemplate("velocity/jsonSerializer.vm");
 
-        processingEnv.getMessager().printMessage(
+        messager.printMessage(
                 Diagnostic.Kind.NOTE,
                 "applying velocity template: " + vt.getName());
         vt.merge(vc, writer);
