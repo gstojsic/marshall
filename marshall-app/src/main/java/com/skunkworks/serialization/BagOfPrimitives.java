@@ -3,6 +3,8 @@ package com.skunkworks.serialization;
 import com.skunkworks.serialization.annotation.JsonSerializable;
 import lombok.Data;
 
+import java.beans.Transient;
+
 /**
  * stole on 11.12.16.
  */
@@ -30,6 +32,7 @@ public class BagOfPrimitives {
         return intValue;
     }
 
+    @Transient
     public String getExpectedJson() {
         StringBuilder sb = new StringBuilder();
         sb.append("{");

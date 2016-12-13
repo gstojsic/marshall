@@ -1,5 +1,6 @@
 package com.skunkworks;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.skunkworks.serialization.BagOfPrimitives;
 import com.skunkworks.serialization.BagOfPrimitivesJsonSerializer;
@@ -28,8 +29,6 @@ public class SerializationApplication {
         return (args) -> {
             Gson gson = new Gson();
             BagOfPrimitives bag = new BagOfPrimitives(10L, 15, false, "banana");
-            String serialized = gson.toJson(bag);
-            log.info("serialized:" + serialized);
 
             final long start = System.nanoTime();
             for (int i = 1; i <= ITERATIONS; i++) {
@@ -37,6 +36,18 @@ public class SerializationApplication {
             }
             final long end = System.nanoTime();
             log.info("Gson serialization delta:" + (end - start) / 1_000_000_000D);
+            String serialized = gson.toJson(bag);
+            log.info("Gson serialized:" + serialized);
+
+            ObjectMapper mapper = new ObjectMapper();
+            final long startJackson = System.nanoTime();
+            for (int i = 1; i <= ITERATIONS; i++) {
+                mapper.writeValueAsString(bag);
+            }
+            final long endJackson = System.nanoTime();
+            log.info("Jackson serialization delta:" + (endJackson - startJackson) / 1_000_000_000D);
+            log.info("Jackson serialized:" + mapper.writeValueAsString(bag));
+
 
             log.info("Marshall serialized:" + BagOfPrimitivesJsonSerializer.toJson(bag));
 
