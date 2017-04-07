@@ -1,0 +1,12 @@
+package ${packageName};
+
+public final class ${className}RpcSerializer {
+
+    public static byte[] serialize(final ${className} item) {
+        return null;
+    }
+
+    public static ${className} deserialize(final byte[] bytes) {
+        return null;
+    }
+}

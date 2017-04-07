@@ -3,24 +3,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>marshall-app</artifactId>
+    <artifactId>marshall-rpc-client</artifactId>
     <packaging>jar</packaging>
 
-    <name>marshall-app</name>
-    <description>Proof of concept for serialization</description>
+    <name>marshall-rpc-client</name>
+    <description>Proof of concept for rpc</description>
 
     <parent>
         <groupId>com.skunkworks</groupId>
         <artifactId>marshall</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-
-    <!--<properties>-->
-        <!--<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>-->
-        <!--<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>-->
-        <!--<java.version>1.8</java.version>-->
-        <!--<spring.boot.version>1.4.2.RELEASE</spring.boot.version>-->
-    <!--</properties>-->
 
     <dependencyManagement>
         <dependencies>
@@ -43,21 +36,8 @@
 
         <dependency>
             <groupId>com.skunkworks</groupId>
-            <artifactId>marshall-lib</artifactId>
+            <artifactId>marshall-rpc-connector</artifactId>
             <version>0.0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.8.5</version>
         </dependency>
 
         <dependency>

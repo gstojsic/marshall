@@ -12,10 +12,11 @@ import java.beans.Transient;
 @Data
 public class BagOfPrimitives {
     public static final long DEFAULT_VALUE = 0;
-    public long longValue;
-    public int intValue;
-    public boolean booleanValue;
-    public String stringValue;
+    private long longValue;
+    private int intValue;
+    private boolean booleanValue;
+    private String nullValue;
+    private String stringValue;
 
     public BagOfPrimitives() {
         this(DEFAULT_VALUE, 0, false, "");
@@ -25,6 +26,7 @@ public class BagOfPrimitives {
         this.longValue = longValue;
         this.intValue = intValue;
         this.booleanValue = booleanValue;
+        this.nullValue = null;
         this.stringValue = stringValue;
     }
 
