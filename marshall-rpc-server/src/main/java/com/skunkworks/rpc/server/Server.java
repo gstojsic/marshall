@@ -29,9 +29,15 @@ class Server extends AllDirectives {
                                             maybeItem.map(item -> completeOK(item, Jackson.marshaller()))
                                                     .orElseGet(() -> complete(StatusCodes.NOT_FOUND, "Not Found"))
                                     );
-                                }))),
+                                })
+                        )
+                ),
+                get(() -> pathPrefix("events", () ->
+                        pathEndOrSingleSlash(() -> onSuccess(this::getEvents, events -> complete(StatusCodes.OK, events))))),
+
                 post(() ->
                         path("create-order", () ->
+                                //extractDataBytes()
                                 entity(Jackson.unmarshaller(Order.class), order -> {
                                     CompletionStage<Done> futureSaved = saveOrder(order);
                                     return onSuccess(() -> futureSaved, done ->
@@ -50,5 +56,9 @@ class Server extends AllDirectives {
     // (fake) async database query api
     private CompletionStage<Done> saveOrder(final Order order) {
         return CompletableFuture.completedFuture(Done.getInstance());
+    }
+
+    private CompletableFuture<String> getEvents() {
+        return CompletableFuture.completedFuture("True blue");
     }
 }

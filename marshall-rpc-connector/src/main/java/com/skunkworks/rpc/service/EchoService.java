@@ -7,7 +7,7 @@ import com.skunkworks.rpc.model.EchoResponse;
 /**
  * stole on 06.04.17.
  */
-@Rpc
+//@Rpc
 public interface EchoService {
 
     EchoResponse echo(EchoRequest request);

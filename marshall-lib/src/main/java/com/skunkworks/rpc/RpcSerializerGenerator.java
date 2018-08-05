@@ -2,9 +2,8 @@ package com.skunkworks.rpc;
 
 import com.skunkworks.rpc.template.FieldData;
 import com.skunkworks.rpc.tool.Tools;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
+import freemarker.template.Configuration;
+import freemarker.template.TemplateExceptionHandler;
 
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -15,14 +14,14 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 import javax.tools.JavaFileObject;
 import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -98,7 +97,6 @@ class RpcSerializerGenerator {
     }
 
     private void generateSerializer(TypeElement type) throws Exception {
-        warn("banana");
         final JavaFileObject jfo = filer.createSourceFile(
                 type.getSimpleName() + "RpcSerializer");
 
@@ -108,15 +106,23 @@ class RpcSerializerGenerator {
             final URL url = this.getClass().getClassLoader().getResource("velocity.properties");
             props.load(url.openStream());
 
-            final VelocityEngine ve = new VelocityEngine(props);
-            ve.init();
+            Configuration cfg = new Configuration(Configuration.VERSION_2_3_26);
+            cfg.setClassForTemplateLoading(getClass(), "/freemarker");
+            cfg.setDefaultEncoding("UTF-8");
+            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+            cfg.setLogTemplateExceptions(false);
 
-            final VelocityContext context = new VelocityContext();
+            Map<String, Object> context = new HashMap<>();
+//            final VelocityEngine ve = new VelocityEngine(props);
+//            ve.init();
+//
+//            final VelocityContext context = new VelocityContext();
 
             PackageElement packageElement = (PackageElement) type.getEnclosingElement();
 
             context.put("packageName", packageElement.getQualifiedName().toString());
             context.put("className", type.getSimpleName());
+            context.put("endObjectHashCode", Integer.toString("this".hashCode()));
 
             final List<FieldData> fields = new ArrayList<>();
             for (Element enclosedElement : type.getEnclosedElements()) {
@@ -127,9 +133,11 @@ class RpcSerializerGenerator {
             }
             context.put("fields", fields);
 
-            final Template vt = ve.getTemplate("velocity/rmi/rpcSerializer.vm");
-            warn("merging");
-            vt.merge(context, writer);
+//            final Template vt = ve.getTemplate("velocity/rmi/rpcSerializer.vm");
+//            warn("merging");
+//            vt.merge(context, writer);
+            freemarker.template.Template temp = cfg.getTemplate("rmi/rpcSerializer.ftl");
+            temp.process(context, writer);
         }
     }
 
@@ -150,7 +158,7 @@ class RpcSerializerGenerator {
         String capitalizedName = name.substring(0, 1).toUpperCase() + name.substring(1);
         String getter = getterPrefix + capitalizedName;
         String setter = "set" + capitalizedName;
-        return new FieldData(name, getter, setter);
+        return new FieldData(name, "Long", getter, setter, false, "read" + capitalizedName, Integer.toString(name.hashCode()));
     }
 
     private void warn(String message) {

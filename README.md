@@ -5,3 +5,5 @@ TODO - Rmi
 -serialize complex objects
 -Maps?
 -Lists?
+
+-Extensibility, versioning ?

@@ -12,24 +12,24 @@ import java.util.function.BiConsumer;
 public final class ${className}RpcSerializer {
 
     private static final Map<Integer, BiConsumer<${className}, DataInputStream>> fieldDeserializersMap = new HashMap<Integer, BiConsumer<${className}, DataInputStream>>() {{
-        #foreach($field in $fields)
-        put(${field.hashCode}, ${className}RpcSerializer::${field.deserializer});
-        #end
+        <#list fields as field>
+        put(${field.hash}, ${className}RpcSerializer::${field.deserializer});
+        </#list>
     }};
 
     public static void serialize(final OutputStream bos, final ${className} item) throws Exception {
         final DataOutputStream os = new DataOutputStream(bos);
-        #foreach($field in $fields)
-            #if($field.nullable)
-                if (item.${field.getter}() != null) {
-                    os.writeInt(${field.hashCode});
-                    os.write${field.dataType}(item.${field.getter}());
-                }
-            #else
-                os.writeInt(${field.hashCode});
-                os.write${field.dataType}(item.${field.getter}());
-            #end
-        #end
+    <#list fields as field>
+        <#if field.nullable>
+        if (item.${field.getter}() != null) {
+            os.writeInt(${field.hashCode});
+            os.write${field.dataType}(item.${field.getter}());
+        }
+        <#else>
+        os.writeInt(${field.hash});
+        os.write${field.dataType}(item.${field.getter}());
+        </#if>
+    </#list>
         os.writeInt(${endObjectHashCode});
     }
 
@@ -40,9 +40,9 @@ public final class ${className}RpcSerializer {
         while ((fieldHash = is.readInt()) != ${endObjectHashCode}) {
             fieldDeserializersMap.getOrDefault(fieldHash, (e, dataInputStream) -> {}).accept(item, is);
         }
+        return item;
     }
-
-    #foreach($field in $fields)
+    <#list fields as field>
 
     private static void ${field.deserializer}(${className} item, DataInputStream is) {
         try {
@@ -51,7 +51,5 @@ public final class ${className}RpcSerializer {
             throw new RuntimeException(e);
         }
     }
-
-    #end
-
+    </#list>
 }

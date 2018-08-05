@@ -15,8 +15,10 @@ import org.springframework.context.annotation.Bean;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * stole on 11.12.16.
@@ -45,15 +47,19 @@ public class SerializationApplication {
     private static void runMarshallingTest(String... var1) throws Exception {
         final List<BagOfPrimitives> data = generateData();
 
+        final List<BagOfPrimitives> resultsJson = new ArrayList<>(ITERATIONS);
+        log.info("Jackson serialization delta 0: " + getJsonDelta(data, resultsJson));
+        resultsJson.clear();
+        double jsonDelta = getJsonDelta(data, resultsJson);
+        log.info("Jackson serialization delta 1: " + jsonDelta);
+
         final List<BagOfPrimitives> resultsManual = new ArrayList<>(ITERATIONS);
         log.info("manual marshalling delta 0: " + getManualDelta(data, resultsManual));
         resultsManual.clear();
-        log.info("manual marshalling delta 1: " + getManualDelta(data, resultsManual));
+        double manualDelta = getManualDelta(data, resultsManual);
+        log.info("manual marshalling delta 1: " + manualDelta);
 
-        List<BagOfPrimitives> resultsJson = new ArrayList<>(ITERATIONS);
-        log.info("Jackson serialization delta 0: " + getJsonDelta(data, resultsJson));
-        resultsJson.clear();
-        log.info("Jackson serialization delta 1: " + getJsonDelta(data, resultsJson));
+        log.info("Manual pct: " + manualDelta * 100 / jsonDelta);
 
         log.info("Equals:" + resultsJson.equals(resultsManual));
     }
@@ -61,32 +67,51 @@ public class SerializationApplication {
     private static double getJsonDelta(List<BagOfPrimitives> data, List<BagOfPrimitives> resultsJson) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        final long startJackson = System.nanoTime();
+        long totalTime = 0;
         for (BagOfPrimitives bag : data) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream(100);
+            final long startSerialize = System.nanoTime();
             mapper.writeValue(bos, bag);
-            resultsJson.add(mapper.readValue(new ByteArrayInputStream(bos.toByteArray()), BagOfPrimitives.class));
+            final long endSerialize = System.nanoTime();
+            totalTime += endSerialize - startSerialize;
+
+            final InputStream inputStream = new ByteArrayInputStream(bos.toByteArray());
+            final long startDeserialize = System.nanoTime();
+            final BagOfPrimitives deserializedBag = mapper.readValue(inputStream, BagOfPrimitives.class);
+            final long endDeserialize = System.nanoTime();
+            totalTime += endDeserialize - startDeserialize;
+
+            resultsJson.add(deserializedBag);
         }
-        final long endJackson = System.nanoTime();
-        return (endJackson - startJackson) / 1_000_000_000D;
+        return totalTime / 1_000_000_000D;
     }
 
     private static double getManualDelta(List<BagOfPrimitives> data, List<BagOfPrimitives> resultsManual) throws Exception {
-        ManualMarshaller manualMarshaller = new ManualMarshaller();
-        final long startMsgPackMarshaller = System.nanoTime();
+        //ManualMarshaller manualMarshaller = new ManualMarshaller();
+        long totalTime = 0;
         for (BagOfPrimitives bag : data) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream(100);
-            manualMarshaller.serialize(bos, bag);
-            resultsManual.add(manualMarshaller.deserialize(new ByteArrayInputStream(bos.toByteArray())));
+            final long startSerialize = System.nanoTime();
+            ManualMarshaller.serialize(bos, bag);
+            final long endSerialize = System.nanoTime();
+            totalTime += endSerialize - startSerialize;
+
+            final InputStream inputStream = new ByteArrayInputStream(bos.toByteArray());
+            final long startDeserialize = System.nanoTime();
+            final BagOfPrimitives deserializedBag = ManualMarshaller.deserialize(inputStream);
+            final long endDeserialize = System.nanoTime();
+            totalTime += endDeserialize - startDeserialize;
+
+            resultsManual.add(deserializedBag);
         }
-        final long endMsgPackMarshaller = System.nanoTime();
-        return (endMsgPackMarshaller - startMsgPackMarshaller) / 1_000_000_000D;
+        return totalTime / 1_000_000_000D;
     }
 
     private static List<BagOfPrimitives> generateData() {
+        Random random = new Random();
         ArrayList<BagOfPrimitives> data = new ArrayList<>(ITERATIONS);
         for (int i = 1; i <= ITERATIONS; i++) {
-            data.add(new BagOfPrimitives(i, i, true, "String-" + i));
+            data.add(new BagOfPrimitives(random.nextLong(), random.nextInt(), random.nextBoolean(), "String-" + random.nextDouble()));
         }
         return data;
     }
