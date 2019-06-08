@@ -18,15 +18,6 @@ public class ManualMarshaller {
     private static final int STRING_VALUE = "stringValue".hashCode();
     private static final int THIS_VALUE = "this".hashCode();
 
-//    private static final Map<Integer, BiConsumer<BagOfPrimitives, DataInputStream>> fieldDeserializersMap = new HashMap<Integer, BiConsumer<BagOfPrimitives, DataInputStream>>() {{
-//        put("longValue".hashCode(), ManualMarshaller::readLongValue);
-//        put("intValue".hashCode(), ManualMarshaller::readIntValue);
-//        put("booleanValue".hashCode(), ManualMarshaller::readBooleanValue);
-//        put("nullValue".hashCode(), ManualMarshaller::readNullValue);
-//        put("stringValue".hashCode(), ManualMarshaller::readStringValue);
-//    }};
-
-
     public static void serialize(final OutputStream bos, final BagOfPrimitives item) throws Exception {
         final DataOutputStream os = new DataOutputStream(bos);
         //os.writeUTF("longValue");
@@ -54,8 +45,6 @@ public class ManualMarshaller {
         int fieldHash;
         while ((fieldHash = is.readInt()) != THIS_VALUE) {
             getDeserializer(fieldHash).accept(item, is);
-            //fieldDeserializersMap.getOrDefault(fieldHash, (e, dataInputStream) -> {}).accept(item, is);
-
 
 //            BiConsumer<BagOfPrimitives, DataInputStream> reader = fieldDeserializersMap.get(fieldHash);
 //            if (reader != null)
